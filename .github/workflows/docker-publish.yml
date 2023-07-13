@@ -30,7 +30,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ashokxylo/trade:latest 
+          tags: ashokxylo/trade_backend:latest 
    
    
    
