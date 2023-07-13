@@ -56,7 +56,7 @@ jobs:
         with:
           registry: kprui
           username: ashokxylo
-          password: dckr_pat_UvAuFZlNOzobAN6ARejQomwHovA
+          password: A@shokak101299
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
