@@ -33,6 +33,6 @@ jobs:
           DOCKER_PASSWORD=$DOCKERHUB_PASSWORD
           NEW_VERSION=$NEW_VERSION
 
-          docker build -t $DOCKER_IMAGE_NAME:$NEW_VERSION .
+          docker build -t . $DOCKER_IMAGE_NAME:$NEW_VERSION .
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_IMAGE_NAME:$NEW_VERSION
