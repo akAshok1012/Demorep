@@ -2,7 +2,7 @@ name: Update Version and Build Docker Image
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   update-version:
