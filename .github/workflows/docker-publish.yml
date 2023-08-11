@@ -1,46 +1,42 @@
-
-name: Publish Docker image
+name: Docker Auto Update with Version Control
 
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
-  push_to_registry:
-    name: Push Docker image to Docker Hub
+  update-docker-image:
     runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
-      
-      - name: Log in to Docker Hub
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-        with:
-          images: ashokxylo/kprui
-      
-      - name: Build and push Docker image
-        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
 
-#      - name: Build and Push Docker Im#age
-#          DOCKER_IMAGE_NAME=kprui
- #         DOCKER_USERNAME=$DOCKERHUB_USERNAME
-  #        DOCKER_PASSWORD=$DOCKERHUB_PASSWORD
-   #       NEW_VERSION=$NEW_VERSION
-#
- #         docker build -t $DOCKER_IMAGE_NAME:$NEW_VERSION .
-  #        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-   #       docker push $DOCKER_IMAGE_NAME:$NEW_VERSION 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Update version
+        run: |
+          # Read current version from version.txt
+          CURRENT_VERSION=$(cat version.txt)
+          # Increment the version
+          NEW_VERSION=$((CURRENT_VERSION + 1))
+          # Update the version in version.txt
+          echo $NEW_VERSION > version.txt
+          # Set output variable for later steps
+          echo "::set-output name=new_version::$NEW_VERSION"
+
+      - name: Build and push Docker image
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+          NEW_VERSION: ${{ steps.update-version.outputs.new_version }}
+        run: |
+          # Log in to Docker Hub or your container registry
+          echo A@shokak10299 | docker login  -u ashokxylo --password-stdin
+
+          # Build and push the Docker image with the new version tag
+          docker buildx build -t ashokxylo/kprui:$NEW_VERSION .
+
+          # Push the updated image tag
+          docker push ashokxylo/kprui:$NEW_VERSION
