@@ -1,41 +1,41 @@
-name: Publish Docker Image to Docker Hub 
-
+name: Update Version and Build Docker Image
 on:
   push:
     branches:
-      - 'master'
+      - main
 
 jobs:
-  docker:
+  update-version:
     runs-on: ubuntu-latest
+
     steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v3
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      -
-        name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      -
-        name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ashokxylo
-          password: dckr_pat_UvAuFZlNOzobAN6ARejQomwHovA
-      -
-        name: Build and push
-        uses: docker/build-push-action@v4
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Determine New Version
+        id: version
+        run: |
+          # Your script to determine the new version
+          # For example:
+          echo "::set-output name=new_version::1.0.0"
+
+      - name: Update Version File
+        run: |
+          # Update the version file with the new version
+          # For example:
+          echo "${{ steps.version.outputs.new_version }}" > version.txt
+          git add version.txt
+          git commit -m "Update version to ${{ steps.version.outputs.new_version }}"
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v2
         with:
           context: .
           push: true
-          tags: ashokxylo/trade_backend:latest 
-   
-   
-   
-   
-   
+          tags: ashokxylo/kprui:${{ steps.version.outputs.new_version }}
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-     
-     
+      - name: Push Changes
+        run: git push
