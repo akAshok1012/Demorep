@@ -12,8 +12,9 @@ COPY . /home/myFrontend
 
 #Install npm
 RUN npm install -g @angular/cli
-RUN npm install
-
+RUN npm install -g npm@9.6.7 && \
+    npm i --force 
+     
 # Build
 RUN npm run build
 
