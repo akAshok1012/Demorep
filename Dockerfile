@@ -1,37 +1,22 @@
-FROM node:18 AS builder
+FROM node:14.17.3 as build
 
-MAINTAINER ashok @xyloinc.com
+# Create html and workdir
+RUN mkdir -p /var/www/html/
+RUN mkdir -p /home/myFrontend
 
+WORKDIR /home/myFrontend
 
-RUN apt-get update 
+# install package.json 
+COPY package.json /home/myFrontend/package.json
+COPY . /home/myFrontend
 
-RUN git clone https://YuvanPraveen2001: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@github.com:/XYLO-DEV/xylo-trade-manager-UI.git 
+#Install npm
+RUN npm install -g @angular/cli
+RUN npm install
 
-WORKDIR xylo-trade-manager-UI
- 
-COPY package*.json ./
-
-RUN npm install -g npm@9.6.7 && \
-    npm install -g @angular/cli && \
-    npm i --force  
-
-COPY . .
-
-# Build the Angular app
+# Build
 RUN npm run build
 
-
-   # ng build --configuration=production      	#--output-path= xylo-trade-manager-UI/dist
-
-FROM nginx:latest
-#COPY /nginx-custom.conf  /etc/nginx/conf.d/default.conf
-COPY --from=builder xylo-trade-manager-UI/dist /usr/share/nginx/html
-
-
-
-
-#EXPOSE 80
-
-#CMD ["nginx", "-g", "daemon off;"]
-
-
+# Copy files to html dir
+FROM node:14.17.3
+COPY --from=build /home/myFrontend/dist/myProject/ /var/www/html/
