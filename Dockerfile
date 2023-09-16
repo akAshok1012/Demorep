@@ -6,6 +6,7 @@ MAINTAINER ashok @xyloinc.com
 RUN apt-get update 
 
 RUN git clone https://YuvanPraveen2001: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@github.com:/XYLO-DEV/xylo-trade-manager-UI.git 
+
 WORKDIR xylo-trade-manager-UI
  
 COPY package*.json ./
