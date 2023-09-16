@@ -4,7 +4,7 @@ services:
   kprui:
     build: ./
     image: kpr:fornt-end
-    container_name: trade-ui
+    #container_name: trade-ui
     ports:
       - '81:4200'
    # command: ["npm", "start"]
