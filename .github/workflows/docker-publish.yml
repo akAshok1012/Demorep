@@ -1,42 +1,60 @@
-name: Docker Auto Update with Version Control
+name: Build and Push Docker Image to Docker Hub
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "dev", "main" ]
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: docker.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: kprui
 
 jobs:
-  update-docker-image:
+
+  build:
+
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker-compose build --no-cache --force-rm 
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test the Docker image
+        run: docker-compose up -d 
+  push_to_registry:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
 
-      - name: Update version
-        run: |
-          # Read current version from version.txt
-          CURRENT_VERSION=$(cat version.txt)
-          # Increment the version
-          NEW_VERSION=$((CURRENT_VERSION + 1))
-          # Update the version in version.txt
-          echo $NEW_VERSION > version.txt
-          # Set output variable for later steps
-          echo "::set-output name=new_version::$NEW_VERSION"
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          username: ashoksxylo
+          password: A@shokak101299
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Build and push Docker image
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-          NEW_VERSION: ${{ steps.update-version.outputs.new_version }}
-        run: |
-          # Log in to Docker Hub or your container registry
-          echo A@shokak10299 | docker login  -u ashokxylo --password-stdin
+        uses: docker/build-push-action@v2
+        with:
+          context: "{{defaultContext}}"
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
-          # Build and push the Docker image with the new version tag
-          docker buildx build -t ashokxylo/kprui:$NEW_VERSION .
-
-          # Push the updated image tag
-          docker push ashokxylo/kprui:$NEW_VERSION
